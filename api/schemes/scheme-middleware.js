@@ -6,8 +6,19 @@
     "message": "scheme with scheme_id <actual id> not found"
   }
 */
-const checkSchemeId = (req, res, next) => {
-
+const checkSchemeId = Schemes => (req, res, next) => {
+  const id = req.params.id;
+  Schemes.findbyId(id)
+  .then(scheme => {
+    if (scheme) {
+      next();
+    } else {
+      res.status(404).json({
+        message: `scheme with scheme_id ${id} not found`
+      })
+    }
+  })
+  .catch(err => next(err))
 }
 
 /*
