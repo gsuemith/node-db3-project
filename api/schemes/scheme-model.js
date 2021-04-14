@@ -1,3 +1,5 @@
+const db = require('../../data/db-config')
+
 function find() { // EXERCISE A
   /*
     1A- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`.
@@ -15,9 +17,15 @@ function find() { // EXERCISE A
     2A- When you have a grasp on the query go ahead and build it in Knex.
     Return from this function the resulting dataset.
   */
+  return db.select('sc.*')
+    .count('st.step_id as number_of_steps')
+    .from('schemes as sc')
+    .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
+    .groupBy('sc.scheme_id')
+    .orderBy('sc.scheme_id')
 }
 
-function findById(scheme_id) { // EXERCISE B
+async function findById(scheme_id) { // EXERCISE B
   /*
     1B- Study the SQL query below running it in SQLite Studio against `data/schemes.db3`:
 
@@ -32,7 +40,32 @@ function findById(scheme_id) { // EXERCISE B
 
     2B- When you have a grasp on the query go ahead and build it in Knex
     making it parametric: instead of a literal `1` you should use `scheme_id`.
+  */
 
+ return db.select('sc.scheme_name', 'st.*')
+    .from('schemes as sc')
+    .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
+    .where('sc.scheme_id', '=', scheme_id)
+    .orderBy('st.step_number')
+    .then(steps => {
+      if (steps.length > 0) {
+        return {
+          scheme_id: parseInt(scheme_id),
+          scheme_name: steps[0].scheme_name,
+          steps: steps[0].step_id 
+            ? 
+            steps.map(({ step_id, step_number, instructions }) => {
+              return { step_id, step_number, instructions }
+            }) : (
+              []
+            )
+        }
+      } else {
+        return null
+      }
+    })
+
+  /*
     3B- Test in Postman and see that the resulting data does not look like a scheme,
     but more like an array of steps each including scheme information:
 
@@ -53,7 +86,9 @@ function findById(scheme_id) { // EXERCISE B
         },
         // etc
       ]
-
+  */
+    
+  /*
     4B- Using the array obtained and vanilla JavaScript, create an object with
     the structure below, for the case _when steps exist_ for a given `scheme_id`:
 
@@ -106,12 +141,25 @@ function findSteps(scheme_id) { // EXERCISE C
         }
       ]
   */
+  return db
+  .select('st.step_id', 'st.step_number', 'st.instructions', 'sc.scheme_name' )
+  .from('schemes as sc')
+  .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
+  .where('sc.scheme_id', scheme_id)
+  .orderBy('st.step_number')
 }
 
 function add(scheme) { // EXERCISE D
   /*
     1D- This function creates a new scheme and resolves to _the newly created scheme_.
   */
+  return db('schemes')
+    .insert(scheme)
+    .then(([scheme_id]) => {
+      return db('schemes')
+        .where({ scheme_id })
+        .first()
+    })
 }
 
 function addStep(scheme_id, step) { // EXERCISE E
@@ -120,6 +168,11 @@ function addStep(scheme_id, step) { // EXERCISE E
     and resolves to _all the steps_ belonging to the given `scheme_id`,
     including the newly created one.
   */
+ return db('steps')
+  .insert({ ...step, scheme_id })
+  .then(([step_id]) => {
+    return findSteps(scheme_id)
+  })
 }
 
 module.exports = {

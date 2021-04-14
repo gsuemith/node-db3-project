@@ -6,8 +6,19 @@
     "message": "scheme with scheme_id <actual id> not found"
   }
 */
-const checkSchemeId = (req, res, next) => {
-
+const checkSchemeId = Schemes => (req, res, next) => {
+  const id = req.params.scheme_id;
+  Schemes.findById(id)
+  .then(scheme => {
+    if (scheme) {
+      next();
+    } else {
+      res.status(404).json({
+        message: `scheme with scheme_id ${id} not found`
+      })
+    }
+  })
+  .catch(err => next(err))
 }
 
 /*
@@ -19,7 +30,14 @@ const checkSchemeId = (req, res, next) => {
   }
 */
 const validateScheme = (req, res, next) => {
-
+  const { scheme_name } = req.body
+  if (scheme_name && typeof(scheme_name) === 'string') {
+    next()
+  } else {
+    res.status(400).json({
+      "message": "invalid scheme_name"
+    })
+  }
 }
 
 /*
@@ -28,11 +46,19 @@ const validateScheme = (req, res, next) => {
 
   status 400
   {
-    "message": "invalid step"
+    "message": "invalid scheme_name"
   }
 */
 const validateStep = (req, res, next) => {
-
+  const { instructions, step_number } = req.body
+  if (instructions && typeof(instructions) === 'string'
+    && typeof(step_number) === 'number' && step_number > 0){
+    next()
+  } else {
+    res.status(400).json({
+      "message": "invalid step"
+    })
+  } 
 }
 
 module.exports = {
