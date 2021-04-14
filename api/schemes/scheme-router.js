@@ -87,7 +87,10 @@ router.get('/:scheme_id/steps', (req, res, next) => {
 
   Schemes.findSteps(scheme_id)
     .then(steps => {
-      res.json(steps)
+      if(steps[0].instructions)
+        res.status(200).json(steps)
+      else 
+        res.status(404).json([])
     })
     .catch(next)
 })

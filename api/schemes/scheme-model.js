@@ -45,12 +45,12 @@ async function findById(scheme_id) { // EXERCISE B
  return db.select('sc.scheme_name', 'st.*')
     .from('schemes as sc')
     .leftJoin('steps as st', 'sc.scheme_id', 'st.scheme_id')
-    .where('sc.scheme_id', scheme_id)
+    .where('sc.scheme_id', '=', scheme_id)
     .orderBy('st.step_number')
     .then(steps => {
       if (steps.length > 0) {
         return {
-          scheme_id: scheme_id,
+          scheme_id: parseInt(scheme_id),
           scheme_name: steps[0].scheme_name,
           steps: steps[0].step_id 
             ? 

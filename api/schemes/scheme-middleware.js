@@ -31,7 +31,7 @@ const checkSchemeId = Schemes => (req, res, next) => {
 */
 const validateScheme = (req, res, next) => {
   const { scheme_name } = req.body
-  if (scheme_name) {
+  if (scheme_name && typeof(scheme_name) === 'string') {
     next()
   } else {
     res.status(400).json({
@@ -56,7 +56,7 @@ const validateStep = (req, res, next) => {
     next()
   } else {
     res.status(400).json({
-      "message": "invalid scheme_name"
+      "message": "invalid step"
     })
   } 
 }
